@@ -2,15 +2,17 @@
   "name": "pongio",
   "version": "1.0.0",
   "description": "A Multiplayer Pong Implementation",
-  "main": "index.js",
+  "main": "server.js",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon server.js"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/otaviocap/PongIO.git"
   },
-  "author": "Otavio H. G. C.",
+  "author": "otaviocap",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/otaviocap/PongIO/issues"
@@ -18,10 +20,10 @@
   "homepage": "https://github.com/otaviocap/PongIO#readme",
   "dependencies": {
     "express": "^4.17.1",
-    "nodemon": "^2.0.4"
+    "nodemon": "^2.0.4",
+    "socket.io": "^2.3.0"
   },
   "devDependencies": {
-    "eslint": "^7.1.0",
-    "eslint-plugin-react": "^7.20.0"
+    "eslint": "^7.1.0"
   }
 }

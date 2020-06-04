@@ -1,3 +1,6 @@
+// const url = new URL(window.location.href)
+// const room = url.searchParams.get("r")
+
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -22,36 +25,30 @@
             float: right;
         }
     </style>
+    <script src="/socket.io/socket.io.js"></script>
 </head>
 <body>
     <div>
         <canvas id="main_canvas" width="500" height="300"></canvas>
-        <table class="right">
+        <table class="right" id="scoreboard">
             <tr>
                 <th>Player</th>
                 <th>Points</th>
-            </tr>
-            <tr>
-                <th>Otavio</th>
-                <th>5</th>
-            </tr>
-            <tr>
-                <th>Vics</th>
-                <th>10</th>
-            </tr>
-            <tr>
-                <th>Giasco</th>
-                <th>0</th>
-            </tr>
+            </tr>   
         </table>
     </div>
     <script type="module">
         import render from "./render.js"
         import createGame from "./game.js"
-        const game = createGame();
-        const url = new URL(window.location.href)
-        const room = url.searchParams.get("r")
+        import createKeyboardListener from "./keyboardListener.js"
+
+        const game = createGame()
+        const keyboardListener = createKeyboardListener()
+        keyboardListener.subscribe(game.movePlayer)
+
+
         render(game, room)
+        game.loop()
     </script>
 </body>
 </html>
