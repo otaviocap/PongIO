@@ -1,0 +1,57 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PongIO</title>
+    <style>
+        table, th, tr {
+            color: white;
+            border: 1px solid white;
+            border-collapse: collapse;
+            padding: 20px;
+
+        }
+        body {
+            background-color: black;
+        }
+        canvas {
+            padding: 50px;
+            width: 50%;
+        }
+        .right {
+            float: right;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <canvas id="main_canvas" width="500" height="300"></canvas>
+        <table class="right">
+            <tr>
+                <th>Player</th>
+                <th>Points</th>
+            </tr>
+            <tr>
+                <th>Otavio</th>
+                <th>5</th>
+            </tr>
+            <tr>
+                <th>Vics</th>
+                <th>10</th>
+            </tr>
+            <tr>
+                <th>Giasco</th>
+                <th>0</th>
+            </tr>
+        </table>
+    </div>
+    <script type="module">
+        import render from "./render.js"
+        import createGame from "./game.js"
+        const game = createGame();
+        const url = new URL(window.location.href)
+        const room = url.searchParams.get("r")
+        render(game, room)
+    </script>
+</body>
+</html>
