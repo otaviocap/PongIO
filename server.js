@@ -10,10 +10,12 @@ const sockets = socketio(server)
 app.use(express.static('public'))
 
 const game = createGame()
-game.loop()
 
 game.subscribe((command) => {
-    console.log(`Emiting ${command.type}`)
+    if (command.type !== "update-ball") {
+        console.log(`Emiting ${command.type}`)
+        console.log(command)
+    }
     sockets.emit(command.type, command)
 })
 
@@ -26,12 +28,20 @@ sockets.on("connection", (socket) => {
 
     socket.on("disconnect", () => {
         game.removePlayer(playerId)
-        console.log("Player exited")
+        console.log(`Player ${playerId} exited`)
+        socket.emit("remove-player", {playerId})
     })
 
     socket.on("keyboard-keydown", (command) => {
         command.playerId = playerId
         game.movePlayer(command)
+    })
+
+    socket.on("set-nickname", (command) => {
+        if (command.nickname) {
+            command.nickname = command.nickname.slice(0,15)
+            game.setNickname(command)
+        }
     })
 })
 

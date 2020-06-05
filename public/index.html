@@ -1,5 +1,5 @@
-// const url = new URL(window.location.href)
-// const room = url.searchParams.get("r")
+<!-- const url = new URL(window.location.href)
+const room = url.searchParams.get("r") -->
 
 <html lang="en">
 <head>
@@ -37,18 +37,77 @@
             </tr>   
         </table>
     </div>
+    <div class="right">
+        <input id="nickname" type="text" placeholder="Nickname" maxlength="15">
+        <button type="button" id="nicknameSubmit">Submit</button>
+    </div>
     <script type="module">
         import render from "./render.js"
         import createGame from "./game.js"
         import createKeyboardListener from "./keyboardListener.js"
 
+        const socket = io()
         const game = createGame()
         const keyboardListener = createKeyboardListener()
-        keyboardListener.subscribe(game.movePlayer)
 
+        document.getElementById("nicknameSubmit").onclick = () => {
+            const nick = document.getElementById("nickname").value
+            socket.emit("set-nickname", {
+                nickname: nick,
+                playerId: socket.id
+            })
+        }
+        
+        socket.on("setup", (state) => {
+            const playerId = socket.id;
+            game.setState(state);
+            keyboardListener.setTeam(game.state.players[playerId].team)
+            keyboardListener.subscribe((command) => {
+                socket.emit('keyboard-keydown', command)
+            })
+            render(game, playerId)
+        })
 
-        render(game, room)
-        game.loop()
+        socket.on("add-player", (command) => {
+            console.log(`adding player ${command.playerId}`)
+            game.addPlayer(command.playerId)
+        })
+
+        socket.on("remove-player", (command) => {
+            game.removePlayer(command.playerId)
+        })
+
+        socket.on("update-score", (command) => {
+            game.setScore(command)
+        })
+
+        socket.on("keyboard-keydown", (command) => {
+            const playerId = socket.id
+
+            if (playerId !== command.playerId) {
+                game.movePlayer(command)
+            }
+        })
+
+        socket.on("update-ball", (command) => {
+            game.updateBall(command)
+        })
+      
+        socket.on("set-nickname", (command) => {
+            console.log(`Player: ${command.playerId} now is ${command.nickname}`)
+            game.setNickname(command)
+        })
+
+        socket.on("connect", () => {
+            const playerId = socket.id
+        })
+
+        socket.on("add-score", (command) => {
+            console.log(command)
+            game.addScore(command.playerId)
+            console.log(game)
+        })
     </script>
+
 </body>
 </html>

@@ -1,4 +1,4 @@
-export default function render(game) {
+export default function render(game, playerId) {
     var canvas = document.getElementById("main_canvas")
     var ctx = canvas.getContext("2d")
     
@@ -15,10 +15,18 @@ export default function render(game) {
 
     drawBall(ctx, game.state.ball.position.x, game.state.ball.position.y, game.ballRadius)
 
-    // //Draw Players
+    //Draw Players
+    const playerTeam = game.state.players[playerId].team
     for (const side in game.state.playerPositions) {
-        ctx.fillRect(game.state.playerPositions[side].x,game.state.playerPositions[side].y,game.padSize.width,game.padSize.height)
+        if (playerTeam === side.toUpperCase()) {
+            ctx.fillStyle = 'goldenrod'
+            ctx.fillRect(game.state.playerPositions[side].x,game.state.playerPositions[side].y,game.padSize.width,game.padSize.height)
+        } else {
+            ctx.fillStyle = 'white'
+            ctx.fillRect(game.state.playerPositions[side].x,game.state.playerPositions[side].y,game.padSize.width,game.padSize.height)
+        }
     }
+    ctx.fillStyle = 'white'
 
     // //Draw Points
     ctx.font = "25px roboto"
@@ -26,7 +34,7 @@ export default function render(game) {
     ctx.fillText(game.state.points[1], game.size.width/2+17, 30)
 
     updateScoreboard(game)
-    requestAnimationFrame(() => render(game))
+    requestAnimationFrame(() => render(game, playerId))
 }
 
 function drawBall(ctx, x, y, radius) {
@@ -63,17 +71,20 @@ function createTableHeader(table) {
 }
 
 function updateScoreboard(game) {
-    const table = document.getElementById("scoreboard")
-    table.innerHTML = ""
-    createTableHeader(table)
+    var table = document.getElementById("scoreboard")
+    var newTable = document.createElement("table")
+    createTableHeader(newTable)
     for (const playerName in game.state.players) {
         const line = document.createElement("tr")
         const name = document.createElement("th")
         const points = document.createElement("th")
-        name.innerHTML = playerName
-        points.innerHTML = game.state.players[playerName]
+        name.textContent = String(game.state.players[playerName].nickname)
+        points.textContent = game.state.players[playerName].score
         line.appendChild(name)
         line.appendChild(points)
-        table.appendChild(line)
+        newTable.appendChild(line)
+    }
+    if (newTable.innerHTML !== table.innerHTML.slice(7,-8)) {
+        table.innerHTML = newTable.innerHTML
     }
 }
