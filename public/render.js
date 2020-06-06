@@ -64,7 +64,7 @@ function createTableHeader(table) {
     const name = document.createElement("th")
     const points = document.createElement("th")
     name.innerHTML = "Name"
-    points.innerHTML = "Points"
+    points.innerHTML = "Score"
     line.appendChild(name)
     line.appendChild(points)
     table.appendChild(line)

@@ -43,11 +43,11 @@ const room = url.searchParams.get("r") -->
     </div>
     <script type="module">
         import render from "./render.js"
-        import createGame from "./game.js"
+        import createClient from "./client.js"
         import createKeyboardListener from "./keyboardListener.js"
 
         const socket = io()
-        const game = createGame()
+        const game = createClient()
         const keyboardListener = createKeyboardListener()
 
         document.getElementById("nicknameSubmit").onclick = () => {
@@ -70,7 +70,7 @@ const room = url.searchParams.get("r") -->
 
         socket.on("add-player", (command) => {
             console.log(`adding player ${command.playerId}`)
-            game.addPlayer(command.playerId)
+            game.addPlayer(command)
         })
 
         socket.on("remove-player", (command) => {
