@@ -29,11 +29,11 @@ export default function render(game, playerId) {
     ctx.fillStyle = 'white'
 
     // //Draw Points
-    ctx.font = "25px roboto"
+    ctx.font = "100% 'Press Start 2P'"
     ctx.fillText(game.state.points[0], game.size.width/2-30, 30)
-    ctx.fillText(game.state.points[1], game.size.width/2+17, 30)
+    ctx.fillText(game.state.points[1], game.size.width/2+15, 30)
 
-    updateScoreboard(game)
+    updateScoreboard(game, playerId)
     requestAnimationFrame(() => render(game, playerId))
 }
 
@@ -63,26 +63,59 @@ function createTableHeader(table) {
     const line = document.createElement("tr")
     const name = document.createElement("th")
     const points = document.createElement("th")
-    name.innerHTML = "Name"
+    const team = document.createElement("th")
+    name.innerHTML = "Players"
     points.innerHTML = "Score"
+    team.innerHTML = "Team"
+    name.className = "scoreboard-title"
+    points.className = "scoreboard-title"
+    team.className = "scoreboard-title"
     line.appendChild(name)
+    line.appendChild(team)
     line.appendChild(points)
     table.appendChild(line)
 }
 
-function updateScoreboard(game) {
+function updateScoreboard(game, playerId) {
     var table = document.getElementById("scoreboard")
     var newTable = document.createElement("table")
-    createTableHeader(newTable)
+    var playersToRender = []
+    createTableHeader(newTable)    
     for (const playerName in game.state.players) {
+        if (game.state.players[playerName]) {
+            playersToRender.push({
+                nickname: game.state.players[playerName].nickname,
+                score: game.state.players[playerName].score,
+                team: game.state.players[playerName].team,
+                isPlayer: playerName === playerId
+            })
+        }   
+    }
+    playersToRender.sort((a,b) => a.score < b.score ? 1 : -1)
+    for (const player of playersToRender) {
         const line = document.createElement("tr")
-        const name = document.createElement("th")
         const points = document.createElement("th")
-        name.textContent = String(game.state.players[playerName].nickname)
-        points.textContent = game.state.players[playerName].score
+        const name = document.createElement("th")
+        const team = document.createElement("th")
+        if (player.isPlayer) {
+            name.style = "color: goldenrod;"
+            points.style = "color: goldenrod;"
+            team.style = "color: goldenrod;"
+        }
+        name.className = "scoreboard-items"
+        points.className = "scoreboard-items"
+        name.textContent = String(player.nickname)
+        points.textContent = player.score
+        team.textContent = player.team
         line.appendChild(name)
+        line.appendChild(team)
         line.appendChild(points)
         newTable.appendChild(line)
+        if (player.team === "LEFT") {
+            document.getElementById("playerLeft").innerHTML = player.nickname.slice(0,15)
+        } else if (player.team === "RIGHT") {
+            document.getElementById("playerRight").innerHTML = player.nickname.slice(0,15)
+        }
     }
     if (newTable.innerHTML !== table.innerHTML.slice(7,-8)) {
         table.innerHTML = newTable.innerHTML

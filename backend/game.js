@@ -3,6 +3,8 @@ import createObserver from "../public/observer.js"
 export default function createGame() {
     
     const observer = createObserver()
+
+    const FPS = 60
     
     const SCREENSIZE = {
         height: 300,
@@ -41,7 +43,8 @@ export default function createGame() {
         killGame: false,
         playerIdOnRight: "",
         playerIdOnLeft: "",
-        winner: undefined
+        winner: undefined,
+        loser: undefined
     }
 
     // ======================================= BALL ==================================================
@@ -133,30 +136,59 @@ export default function createGame() {
     // ================== SCORE =======================
 
     function checkForWinner() {
-        console.log(state.points)
         if (state.points[0] > POINTSTOWIN) {
-            addScore(state.playerIdOnRight)
+            addScore(state.playerIdOnLeft)
             state.killGame = true
         } else if (state.points[1] > POINTSTOWIN) {
-            addScore(state.playerIdOnLeft)
+            addScore(state.playerIdOnRight)
             state.killGame = true
         }
     }
 
     function addScore(playerId) {
         state.players[playerId].score++
-        state.winner = playerId
+        if (state.playerIdOnRight || state.playerIdOnLeft) {
+            if (playerId === state.playerIdOnLeft) {
+                state.winner = state.playerIdOnLeft
+                state.loser = state.playerIdOnRight
+            } else {
+                state.winner = state.playerIdOnRight
+                state.loser = state.playerIdOnLeft
+            }
+        }
         observer.notifyAll({
             type: "add-score",
             playerId: playerId
         })
     }
 
+    // ================= TEAMS =============================
+
+    function updateTeam(command) {
+        if (command.team) {
+            if (state.players[command.playerId]) {
+                state.players[command.playerId].team = command.team
+                if (command.team === "RIGHT") {
+                    state.rightIsAvailable = false
+                    state.playerIdOnRight = command.playerId
+                } else {
+                    state.leftIsAvailable = false
+                    state.playerIdOnLeft = command.playerId
+                }
+                observer.notifyAll({
+                    type: "update-team",
+                    playerId: command.playerId,
+                    team: command.team
+                })
+            }
+        }
+    }
+
 
     // ================= PLAYERS ===========================
 
     function addPlayer(playerId) {
-        console.log(`> From game ${playerId}`)
+        // console.log(state)
         var playerTeam = ""
         if (state.leftIsAvailable) {
             state.leftIsAvailable = false
@@ -175,34 +207,46 @@ export default function createGame() {
                 score: 0,
                 team: playerTeam
             }
-            console.log(`> From game ${Object.entries(state.players)}`)
             observer.notifyAll({
                 type: "add-player",
                 playerId: playerId,
                 playerTeam: playerTeam
             })
         }
-        start()
+        // console.log(state)
+        // console.log(`> Adding a player with this specs:`)
+        // console.log(state.players[playerId])
+        if (!state.started) {
+            tryToStartNewMatch()
+        }
     }
 
     function removePlayer(playerId) {
+        // console.log(state)
+        var needToRestart = false
         if (state.players[playerId].team === "RIGHT") {
             state.rightIsAvailable = true
-            state.killGame = true
-            state.started = false
         } else if (state.players[playerId].team === "LEFT") {
             state.leftIsAvailable = true
-            state.killGame = true
-            state.started = false
+        }
+        if (state.players[playerId].team !== "SPEC") {
+            needToRestart = true
         }
         if (playerId === state.winner) {
             state.winner = undefined
+        } 
+        if (playerId === state.loser) {
+            state.loser = undefined
         }
         delete state.players[playerId];
         observer.notifyAll({
             type: "remove-player",
             playerId: playerId
         })
+        if (needToRestart) {
+            state.killGame = true
+        }
+        // console.log(state)
     }
 
 
@@ -236,27 +280,71 @@ export default function createGame() {
     // ============ MATCH ==================
     
     function tryToStartNewMatch() {
-        console.log("Trying to start a new match")
+        // console.log("\n\n\n\n\n\n\n> Trying to start a new match")
+        state.started = false
         if (state.winner) {
-            var nextPlayer = getRandomKey(state.players)
-            while (state.winner === getRandomKey) {
-                var nextPlayer = getRandomKey(state.players)
+            const choosable = {}
+            for (const player in state.players) {
+                if (player !== state.winner && player !== state.loser) {
+                    choosable[player] = state.players[player]
+                }
             }
-            console.log(nextPlayer)
-            if (state.players[state.winner].team === "LEFT") {
-                state.players[nextPlayer].team = "RIGHT"
-                start()
+
+            var nextPlayer = getRandomKey(choosable)
+            if (Object.entries(state.players).length === 2) {
+                checkAndStart()
             } else {
-                state.players[nextPlayer].team = "LEFT"
+                updateTeam({
+                    playerId: state.loser,
+                    team: "SPEC"
+                })
+                var nextPlayer = getRandomKey(choosable)
+                if (state.players[state.winner].team === "LEFT") {
+                    updateTeam({
+                        playerId: nextPlayer,
+                        team: "RIGHT"
+                    })
+                } else {
+                    updateTeam({
+                        playerId: nextPlayer,
+                        team: "LEFT"
+                    })
+                }
                 start()
             }
+        } else if (Object.entries(state.players).length >= 2){
+            checkAndStart()
         }
     }
     
+    function checkAndStart() {
+        var nextPlayer;
+        if (state.leftIsAvailable) {
+            nextPlayer = getRandomKey(state.players)
+            updateTeam({
+                playerId: nextPlayer,
+                team: "LEFT"
+            })
+        }else if (state.rightIsAvailable) {
+            nextPlayer = getRandomKey(state.players)
+            updateTeam({
+                playerId: nextPlayer,
+                team: "RIGHT"
+            }) 
+        }
+        if (!state.rightIsAvailable && !state.leftIsAvailable) {
+            start()
+        } else {
+            setTimeout(tryToStartNewMatch, 1000)
+        }
+    }
+
     function loop() {
         moveBall()
-        if (!state.killGame) {
-            setTimeout(loop, 1000/60)
+        if (!state.killGame && !state.leftIsAvailable === true && !state.rightIsAvailable === true 
+            && state.playerIdOnLeft !== state.playerIdOnRight
+            && state.players[state.playerIdOnLeft] && state.players[state.playerIdOnRight]) {
+            setTimeout(loop, 1000/FPS)
         } else {
             resetPoints()
             resetBall(state.ball)
@@ -265,17 +353,16 @@ export default function createGame() {
     }
     
     function start() {
-        console.log("Maybe starting a match now")
-        console.log(`state.leftIsAvailable: ${state.leftIsAvailable}`)
-        console.log(`state.rightIsAvailable: ${state.rightIsAvailable}`)
-        console.log(`state.started: ${state.started}`)
+        // console.log("Maybe starting a match now")
+        // console.log(`state.leftIsAvailable: ${state.leftIsAvailable}`)
+        // console.log(`state.rightIsAvailable: ${state.rightIsAvailable}`)
+        // console.log(`state.started: ${state.started}`)
         if (!state.leftIsAvailable && !state.rightIsAvailable && !state.started) {
             state.started = true
             state.killGame = false
-            loop()
+            setTimeout(loop, 1000)
         } else {
-            state.started = false
-            setTimeout(() => {tryToStartNewMatch()}, 1000)
+            setTimeout(tryToStartNewMatch, 1000)
         }
     }
 
@@ -293,8 +380,6 @@ export default function createGame() {
     function getRandomKey(object) {
         const keys = Object.keys(object)
         const random = Math.floor(randirange(0, keys.length))
-        console.log(keys)
-        console.log(random)
         return keys[random]
     }
 

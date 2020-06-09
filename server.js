@@ -12,7 +12,7 @@ app.use(express.static('public'))
 const game = createGame()
 
 game.subscribe((command) => {
-    if (command.type !== "update-ball") {
+    if (command.type === "update-team") {
         console.log(`Emiting ${command.type}`)
         console.log(command)
     }
@@ -21,7 +21,6 @@ game.subscribe((command) => {
 
 sockets.on("connection", (socket) => {
     const playerId = socket.id;
-    console.log(`Player Connected ${playerId}`)
     game.addPlayer(playerId)
 
     socket.emit("setup", game.state)

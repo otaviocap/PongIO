@@ -75,6 +75,10 @@ export default function createClient() {
         delete state.players[playerId];
     }
 
+    function updateTeam(command) {
+        state.players[command.playerId].team = command.team
+    }
+
     function movePlayer(command) {
         const key = command.key
         if (key) {
@@ -109,6 +113,7 @@ export default function createClient() {
         updateBall,
         setScore: setPoints,
         setNickname,
-        addScore
+        addScore,
+        updateTeam
     }
 }
