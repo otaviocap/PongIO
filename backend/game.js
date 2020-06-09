@@ -188,41 +188,21 @@ export default function createGame() {
     // ================= PLAYERS ===========================
 
     function addPlayer(playerId) {
-        // console.log(state)
-        var playerTeam = ""
-        if (state.leftIsAvailable) {
-            state.leftIsAvailable = false
-            state.playerIdOnLeft = playerId
-            playerTeam = "LEFT"
-        } else if (state.rightIsAvailable) {
-            state.rightIsAvailable = false
-            state.playerIdOnRight = playerId
-            playerTeam = "RIGHT"
-        } else {
-            playerTeam = "SPEC"
-        }
         if (!state.players[playerId]) {
             state.players[playerId] = {
                 nickname: playerId,
                 score: 0,
-                team: playerTeam
+                team: "SPEC"
             }
             observer.notifyAll({
                 type: "add-player",
                 playerId: playerId,
-                playerTeam: playerTeam
+                playerTeam: "SPEC"
             })
-        }
-        // console.log(state)
-        // console.log(`> Adding a player with this specs:`)
-        // console.log(state.players[playerId])
-        if (!state.started) {
-            tryToStartNewMatch()
         }
     }
 
     function removePlayer(playerId) {
-        // console.log(state)
         var needToRestart = false
         if (state.players[playerId].team === "RIGHT") {
             state.rightIsAvailable = true
@@ -246,7 +226,6 @@ export default function createGame() {
         if (needToRestart) {
             state.killGame = true
         }
-        // console.log(state)
     }
 
 
@@ -278,93 +257,91 @@ export default function createGame() {
     }
 
     // ============ MATCH ==================
-    
-    function tryToStartNewMatch() {
-        // console.log("\n\n\n\n\n\n\n> Trying to start a new match")
-        state.started = false
-        if (state.winner) {
-            const choosable = {}
-            for (const player in state.players) {
-                if (player !== state.winner && player !== state.loser) {
-                    choosable[player] = state.players[player]
-                }
-            }
 
-            var nextPlayer = getRandomKey(choosable)
-            if (Object.entries(state.players).length === 2) {
-                checkAndStart()
-            } else {
+
+    function prepareMatch() {
+        if (state.winner) {
+            if (Object.entries(state.players).length > 2) {
                 updateTeam({
                     playerId: state.loser,
                     team: "SPEC"
                 })
-                var nextPlayer = getRandomKey(choosable)
+                const choosable = filterPlayers((playerId) => {return playerId !== state.winner && playerId !== state.loser})
+                const nextPlayer = getRandomKey(choosable)
                 if (state.players[state.winner].team === "LEFT") {
-                    updateTeam({
-                        playerId: nextPlayer,
-                        team: "RIGHT"
+                    startMatch({
+                        leftPlayer: state.winner,
+                        rightPlayer: nextPlayer
                     })
                 } else {
-                    updateTeam({
-                        playerId: nextPlayer,
-                        team: "LEFT"
+                    startMatch({
+                        leftPlayer: nextPlayer,
+                        rightPlayer: state.winner
                     })
                 }
-                start()
+
+            } else {
+                if (Object.entries(state.players).length === 2) {
+                    startMatch({
+                        leftPlayer: Object.entries(state.players)[0],
+                        rightPlayer: Object.entries(state.players)[1]
+                    })
+                }
             }
-        } else if (Object.entries(state.players).length >= 2){
-            checkAndStart()
-        }
-    }
-    
-    function checkAndStart() {
-        var nextPlayer;
-        if (state.leftIsAvailable) {
-            nextPlayer = getRandomKey(state.players)
-            updateTeam({
-                playerId: nextPlayer,
-                team: "LEFT"
-            })
-        }else if (state.rightIsAvailable) {
-            nextPlayer = getRandomKey(state.players)
-            updateTeam({
-                playerId: nextPlayer,
-                team: "RIGHT"
-            }) 
-        }
-        if (!state.rightIsAvailable && !state.leftIsAvailable) {
-            start()
         } else {
-            setTimeout(tryToStartNewMatch, 1000)
+            if (Object.entries(state.players).length >= 2) {
+                const choosable = filterPlayers((_) => {return true})
+                const firstPlayer = getRandomKey(choosable)
+                delete choosable[firstPlayer]
+                const secondPlayer = getRandomKey(choosable)
+                startMatch({
+                    leftPlayer: firstPlayer,
+                    rightPlayer: secondPlayer
+                })
+            }
         }
     }
 
-    function loop() {
+    function startMatch(command) {
+        updateTeam({
+            playerId: command.leftPlayer,
+            team: "LEFT"
+        })
+
+        updateTeam({
+            playerId: command.rightPlayer,
+            team: "RIGHT"
+        })
+        state.started = true
+        state.killGame = false
+
+        // Ball part needs to be redone, but for the moment
+        // this will work to randomize ball start direction
+        var angle = Math.PI / randirange(-5, 5)
+        state.ball.accelaration.y = BALLSPEED * Math.cos(angle)
+        state.ball.accelaration.x = BALLSPEED * Math.sin(angle)
+
+        gameLoop()    
+    }
+
+    function gameLoop() {
         moveBall()
-        if (!state.killGame && !state.leftIsAvailable === true && !state.rightIsAvailable === true 
-            && state.playerIdOnLeft !== state.playerIdOnRight
-            && state.players[state.playerIdOnLeft] && state.players[state.playerIdOnRight]) {
-            setTimeout(loop, 1000/FPS)
-        } else {
+        if (state.killGame) {
             resetPoints()
             resetBall(state.ball)
-            tryToStartNewMatch()
+            state.started = false
+        } else { 
+            setTimeout(gameLoop, 1000/FPS)
+        }
+    }
+
+    function matchMaker() {
+        if (!state.started) {
+            prepareMatch()
         }
     }
     
-    function start() {
-        // console.log("Maybe starting a match now")
-        // console.log(`state.leftIsAvailable: ${state.leftIsAvailable}`)
-        // console.log(`state.rightIsAvailable: ${state.rightIsAvailable}`)
-        // console.log(`state.started: ${state.started}`)
-        if (!state.leftIsAvailable && !state.rightIsAvailable && !state.started) {
-            state.started = true
-            state.killGame = false
-            setTimeout(loop, 1000)
-        } else {
-            setTimeout(tryToStartNewMatch, 1000)
-        }
-    }
+    
 
     // ===================== OTHERS =========================
 
@@ -399,6 +376,16 @@ export default function createGame() {
         return a
     }
 
+    function filterPlayers(filter) {
+        const filtered = {}
+        for (const playerId in state.players) {
+            if (filter(playerId)) {
+                filtered[playerId] = state.players[playerId]
+            }
+        }
+        return filtered
+    }
+
     return {
         state,
         subscribe: observer.subscribe,
@@ -407,7 +394,6 @@ export default function createGame() {
         unsubscribeAll: observer.unsubscribeAll,
         movePlayer,
         size: SCREENSIZE,
-        loop,
         padSize: PADSIZE,
         ballRadius: BALLRADIUS,
         addPlayer,
@@ -415,6 +401,7 @@ export default function createGame() {
         updateBall,
         setPoints,
         setNickname,
-        addScore
+        addScore,
+        matchMaker
     }
 }

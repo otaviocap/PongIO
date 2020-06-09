@@ -9,7 +9,10 @@ const sockets = socketio(server)
 
 app.use(express.static('public'))
 
+const UPDATESECONDS = 2
+
 const game = createGame()
+const loop = setInterval(game.matchMaker, 1000*UPDATESECONDS)
 
 game.subscribe((command) => {
     if (command.type === "update-team") {
