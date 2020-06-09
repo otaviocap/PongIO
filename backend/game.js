@@ -1,4 +1,4 @@
-import createObserver from "../public/observer.js"
+import createObserver from "../public/js/observer.js"
 
 export default function createGame() {
     

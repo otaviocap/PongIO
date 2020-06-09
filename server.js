@@ -9,6 +9,7 @@ const sockets = socketio(server)
 
 app.use(express.static('public'))
 
+
 const UPDATESECONDS = 2
 
 const game = createGame()

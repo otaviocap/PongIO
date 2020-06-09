@@ -1,0 +1,88 @@
+
+.title {
+    text-align: left;
+
+}
+.container {
+    margin: 50px;
+    color: white;
+    font-family: "Press Start 2P";
+}
+table, tr, th {
+    color: white;
+    border: 5px solid white;
+    border-collapse: collapse;
+    padding: 20px;
+    width: 100%;
+}
+table {
+    margin-bottom: 4%;
+}
+.game {
+    height: 50%;
+    width: 50%;
+    image-rendering: pixelated;
+}
+.right {
+    float: right;
+    width: 48%;
+}
+
+.scoreboard-title {
+    font-size: large;
+    font-weight: bold;
+}
+
+.scoreboard-items {
+    font-size: medium;
+    font-weight: lighter;
+}
+
+.nickname-changer {
+    width: 85%;
+    margin-bottom: 1%;
+    background-color: transparent;
+    border: solid white 5px;
+    color:white;
+    padding: 1%;
+    font-family: "Press Start 2P";
+}
+
+.nickname-changer::placeholder {
+    font-family: "Press Start 2P";
+}
+
+.submit-nickname-button {
+    background-color: transparent;
+    border: solid white 5px;
+    color: white;
+    font-family: "Press Start 2P";
+    padding-top: 1%;
+    padding-bottom: 1%;
+    width: 10%;
+    cursor: pointer;
+}
+
+.bottom-info {
+    font-family: "Press Start 2P";
+    color: white;
+    overflow: hidden;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+}
+
+.bottom-info p {
+    float: left;
+    font-size: x-large;
+}
+
+.bottom-info #playerLeft, #playerRight{
+    text-align: center;
+    width: 25%;
+}
+
+.bottom-info #roomId {
+    text-align: center;
+    width: 50%;
+}

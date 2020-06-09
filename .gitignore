@@ -104,4 +104,6 @@ dist
 .tern-port
 
 # Other
-public/test.js
+test.js
+old-*
+public/ignore/
