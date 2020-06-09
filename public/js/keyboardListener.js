@@ -7,7 +7,7 @@ export default function createKeyboardListener() {
     document.addEventListener("keydown", handleKeydown)
     function handleKeydown(event) {
         if (team !== "SPEC") {
-            console.log(`Notifying key down ${event.key}`)
+            console.log(`Sending to server key down ${event.key}`)
             observer.notifyAll({
                 type: "keyboard-keydown",
                 key: event.key,

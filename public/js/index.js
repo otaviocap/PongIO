@@ -64,9 +64,7 @@ socket.on("connect", () => {
 })
 
 socket.on("add-score", (command) => {
-    console.log(command)
     game.addScore(command.playerId)
-    console.log(game)
 })
 
 socket.on ("update-team", (command) => {

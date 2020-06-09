@@ -16,7 +16,8 @@ const game = createGame()
 const loop = setInterval(game.matchMaker, 1000*UPDATESECONDS)
 
 game.subscribe((command) => {
-    if (command.type === "update-team") {
+    //Filtering update ball off, so you can see more clear the console output
+    if (command.type !== "update-ball") {
         console.log(`Emiting ${command.type}`)
         console.log(command)
     }
