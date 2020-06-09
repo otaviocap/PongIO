@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/base.css">
+    <style>
+        .container {
+            font-family: "Press Start 2P";
+            text-align: center;
+            color:white;
+            width: 100%;
+            height: 100%;
+        }
+        #title {
+            padding: 5% 10% 3% 10%;
+            word-spacing: 100vw;
+            line-height: 3vw;
+            font-size: 2vw;
+        }
+
+        .roomId-connection {
+            width: 50%;
+            left: 50%;
+            margin: 0 auto;
+        }
+
+        .roomId-connection input {
+            background-color: transparent;
+            border: solid white 5px;
+            color:white;
+            width: 50%;
+            padding: 1%;
+            margin: 1%;
+            font-family: "Press Start 2P";
+            font-size: 1vw;
+            text-align: center;
+
+        }
+
+        .roomId-connection input::placeholder {
+            font-family: "Press Start 2P";
+            text-align: center;
+            font-size: large;
+        }
+
+        .roomId-connection button {
+            width: 50%;
+            background-color: white;
+            border: solid white 5px;
+            padding: 1%;
+            margin: 1%;
+            font-family: "Press Start 2P";
+            font-size: 1vw;
+            color: black;
+            cursor: pointer;
+        }
+
+    </style>
+    <title>PongIO</title>
+</head>
+<body>
+    <div class="container">
+        <h1 id="title">Welcome to PongIO</h1>
+        <p>Please insert a room id to play</p> 
+        <p>or leave it blank to join a random one</p>
+        <div class="roomId-connection">
+            <input type="text" maxlength="5" id="roomId-textarea" placeholder="RoomID 12345">
+            <br />
+            <button type="button">Connect</button>
+        </div>
+    </div>
+    <script src="js/main-menu.js"></script>
+</body>
+</html>
